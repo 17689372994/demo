@@ -2,14 +2,22 @@ const express = require('express');
 const app = express();
 const path = require('path');
 const port = process.env.PORT || 3000;
+
+// 打印环境信息（调试用）
+console.log('Environment:', process.env.NODE_ENV);
+console.log('Working directory:', process.cwd());
+
+// CORS 配置
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   next();
 });
 
-// 静态文件服务 - 使用绝对路径
-app.use(express.static(path.join(__dirname, 'public')));
+// 静态文件服务 - 使用 process.cwd() 确保路径正确
+const publicPath = path.join(process.cwd(), 'public');
+console.log('Static files path:', publicPath);
+app.use(express.static(publicPath));
 // 模拟数据生成器
 function generateMockData(type = 'recommend', page = 1) {
     const data = [];
@@ -99,33 +107,35 @@ function generateMockData(type = 'recommend', page = 1) {
     
     return data;
 }
-
-// API路由
+// API路由 - 添加错误处理
 app.get('/api/feed', (req, res) => {
+  try {
     const type = req.query.type || 'recommend';
     const page = parseInt(req.query.page) || 1;
     
     // 模拟API延迟
     setTimeout(() => {
-        const data = generateMockData(type, page);
-        res.json(data);
+      const data = generateMockData(type, page);
+      res.json(data);
     }, 500);
+  } catch (error) {
+    console.error('API Error:', error);
+    res.status(500).json({ error: 'Failed to fetch data' });
+  }
+});
+
+// 所有其他路由返回index.html（SPA应用）
+app.get('*', (req, res) => {
+  res.sendFile(path.join(publicPath, 'index.html'));
+});
+
+// 添加全局错误处理中间件
+app.use((err, req, res, next) => {
+  console.error('Global Error:', err);
+  res.status(500).json({ error: 'Internal Server Error' });
 });
 
 // 启动服务器
 app.listen(port, () => {
-    console.log(`服务器运行在 http://localhost:${port}`);
-    console.log(`API地址示例:`);
-    console.log(`  http://localhost:${port}/api/feed?type=recommend&page=1`);
-    console.log(`  http://localhost:${port}/api/feed?type=hot&page=1`);
-    console.log(`  http://localhost:${port}/api/feed?type=new&page=1`);
+  console.log(`Server running on port ${port}`);
 });
-// // 导出 Express 应用
-// module.exports = app;
-// // 本地开发时使用的监听
-// if (require.main === module) {
-//   const port = process.env.PORT || 3000;
-//   app.listen(port, () => {
-//     console.log(`本地服务器运行在 http://localhost:${port}`);
-//   });
-// }
