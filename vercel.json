@@ -1,0 +1,12 @@
+{
+  "routes": [
+    {
+      "src": "/api/.*",      // API 请求转发到 Node
+      "dest": "server.js"
+    },
+    {
+      "src": "/(.*)",       // 其他请求返回静态文件
+      "dest": "/public/$1"
+    }
+  ]
+}
