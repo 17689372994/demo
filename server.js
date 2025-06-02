@@ -1,7 +1,6 @@
 const express = require('express');
 const app = express();
 const path = require('path');
-const port = process.env.PORT || 3000;
 
 // 添加CORS支持
 app.use((req, res, next) => {
@@ -117,14 +116,13 @@ app.get('/api/feed', (req, res) => {
 app.get('/', (req, res) => {
   res.redirect('/index.html');
 });
-// 关键修改：导出 Express 应用供 Vercel 使用
+// 导出 Express 应用
 module.exports = app;
 
-// 仅本地开发时使用 app.listen
-if (process.env.VERCEL_ENV !== 'production') {
+// 本地开发时使用的监听
+if (require.main === module) {
+  const port = process.env.PORT || 3000;
   app.listen(port, () => {
     console.log(`本地服务器运行在 http://localhost:${port}`);
-    console.log(`API地址示例:`);
-    console.log(`  http://localhost:${port}/api/feed?type=recommend&page=1`);
   });
 }
