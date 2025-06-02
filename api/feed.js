@@ -3,10 +3,9 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 
 // 模拟数据生成器
 function generateMockData(type = 'recommend', page = 1) {
-    console.log('Generating mock data for:', type, 'page:', page); // 添加日志
-    
     const data = [];
     const itemsPerPage = 10;
+    
     // 不同类型的数据
     const titles = {
         recommend: [
@@ -49,7 +48,7 @@ function generateMockData(type = 'recommend', page = 1) {
     
     const users = ["游戏达人", "小可爱", "王者归来", "吃鸡高手", "游戏小白", "大神玩家", "快乐玩家", "游戏迷", "幸运星", "游戏主播"];
     
-    // 使用picsum提供的示例图片，确保图片存在
+    // 图片和视频资源
     const images = [
         "http://gips3.baidu.com/it/u=3886271102,3123389489&fm=3028&app=3028&f=JPEG&fmt=auto?w=1280&h=960",
         "http://gips0.baidu.com/it/u=1690853528,2506870245&fm=3028&app=3028&f=JPEG&fmt=auto?w=1024&h=1024",
@@ -67,16 +66,21 @@ function generateMockData(type = 'recommend', page = 1) {
         "https://www.runoob.com/try/demo_source/movie.mp4",
         "https://www.runoob.com/try/demo_source/movie.mp4",
     ];
+    
     for (let i = 0; i < itemsPerPage; i++) {
         const index = (page - 1) * itemsPerPage + i;
         const isVideo = Math.random() > 0.7;
         
+        // 从数组中随机选择资源
+        const imgIndex = Math.floor(Math.random() * images.length);
+        const videoIndex = Math.floor(Math.random() * videos.length);
+        
         data.push({
             id: index,
-            title: titles[type][i % titles[type].length], // 确保索引不越界
+            title: titles[type][Math.floor(Math.random() * titles[type].length)],
             type: isVideo ? 'video' : 'image',
-            media: isVideo ? videos[Math.floor(Math.random() * videos.length)] : images[Math.floor(Math.random() * images.length)],
-            poster: isVideo ? images[Math.floor(Math.random() * images.length)] : null,
+            media: isVideo ? videos[videoIndex] : `${images[imgIndex]}?auto=format&fit=crop&w=400&h=300&q=80`,
+            poster: isVideo ? `${images[imgIndex]}?auto=format&fit=crop&w=400&h=300&q=80` : null,
             user: users[Math.floor(Math.random() * users.length)],
             likes: Math.floor(Math.random() * 1000),
             comments: Math.floor(Math.random() * 500),
@@ -84,43 +88,28 @@ function generateMockData(type = 'recommend', page = 1) {
         });
     }
     
-    console.log(`Generated ${data.length} items`);
     return data;
 }
 
 // Vercel API 处理函数
-export default function handler(req, res) {
-    console.log('API request received:', req.method, req.url, req.query);
-    
+export default function handler(req: VercelRequest, res: VercelResponse) {
     try {
-        if (req.method !== 'GET') {
-            return res.status(405).json({ error: 'Method Not Allowed' });
+        console.log('API request received:', req.method, req.url, req.query);
+        
+        if (req.method === 'GET') {
+            const type = req.query.type || 'recommend';
+            const page = parseInt(req.query.page as string) || 1;
+            
+            // 模拟API延迟
+            setTimeout(() => {
+                const data = generateMockData(type, page);
+                res.status(200).json(data);
+            }, 500);
+        } else {
+            res.status(405).json({ error: 'Method Not Allowed' });
         }
-        
-        const type = req.query.type || 'recommend';
-        const page = parseInt(req.query.page) || 1;
-        
-        // 验证页码
-        if (isNaN(page) || page < 1) {
-            return res.status(400).json({ error: 'Invalid page number' });
-        }
-        
-        // 生成数据
-        const data = generateMockData(type, page);
-        
-        // 设置响应头并返回JSON
-        res.setHeader('Content-Type', 'application/json');
-        res.status(200).json(data);
-        
-        console.log('Successfully sent response');
     } catch (error) {
         console.error('API handler error:', error);
-        
-        // 确保错误响应被正确发送
-        res.setHeader('Content-Type', 'application/json');
-        res.status(500).json({ 
-            error: 'Internal Server Error', 
-            details: error.message || 'Unknown error' 
-        });
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 }

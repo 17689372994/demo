@@ -625,34 +625,18 @@
         }
         
         // 从Node.js服务器获取数据
-        // 从Node.js服务器获取数据
-async function fetchData(type, page) {
-    try {
-        console.log('Fetching data for:', type, 'page:', page);
-        const response = await fetch(`/api/feed?type=${type}&page=${page}`);
-        
-        // 检查响应状态
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+        async function fetchData(type, page) {
+            try {
+                const response = await fetch(`/api/feed?type=${type}&page=${page}`);
+                if (!response.ok) {
+                    throw new Error('网络响应异常');
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('获取数据失败:', error);
+                return [];
+            }
         }
-        
-        // 检查响应内容长度
-        const responseText = await response.text();
-        console.log('API response text:', responseText);
-        
-        if (!responseText.trim()) {
-            throw new Error('Empty response from server');
-        }
-        
-        const data = JSON.parse(responseText);
-        console.log('API response data:', data);
-        return data;
-    } catch (error) {
-        console.error('获取数据失败:', error);
-        alert(`数据加载失败: ${error.message}`);
-        return [];
-    }
-}
         
         // 渲染数据到瀑布流
         function renderData(data) {
