@@ -5,9 +5,7 @@
       "src": "/api/feed",
       "dest": "/api/feed.js"
     },
-    {
-      "src": "/(.*)",
-      "dest": "/public/$1",
+    { "src": "/(.*)", "dest": "/public/index.html" ,
       "headers": {
         "Cache-Control": "public, max-age=31536000, immutable"
       }
