@@ -1,7 +1,7 @@
 // api/feed.js
 import { VercelRequest, VercelResponse } from '@vercel/node';
 
-// 模拟数据生成器（保持原有逻辑不变）
+// 模拟数据生成器
 function generateMockData(type = 'recommend', page = 1) {
     const data = [];
     const itemsPerPage = 10;
@@ -48,15 +48,15 @@ function generateMockData(type = 'recommend', page = 1) {
     
     const users = ["游戏达人", "小可爱", "王者归来", "吃鸡高手", "游戏小白", "大神玩家", "快乐玩家", "游戏迷", "幸运星", "游戏主播"];
     
-    // 图片和视频资源
+    // 使用picsum提供的示例图片，确保图片存在
     const images = [
-        "http://gips3.baidu.com/it/u=3886271102,3123389489&fm=3028&app=3028&f=JPEG&fmt=auto?w=1280&h=960",
-        "http://gips0.baidu.com/it/u=1690853528,2506870245&fm=3028&app=3028&f=JPEG&fmt=auto?w=1024&h=1024",
-        "http://gips3.baidu.com/it/u=1821127123,1149655687&fm=3028&app=3028&f=JPEG&fmt=auto?w=720&h=1280",
-        "http://gips3.baidu.com/it/u=3886271102,3123389489&fm=3028&app=3028&f=JPEG&fmt=auto?w=1280&h=960",
-        "http://gips0.baidu.com/it/u=3602773692,1512483864&fm=3028&app=3028&f=JPEG&fmt=auto?w=960&h=1280",
-        "http://gips0.baidu.com/it/u=3602773692,1512483864&fm=3028&app=3028&f=JPEG&fmt=auto?w=960&h=1280",
-        "http://gips3.baidu.com/it/u=1022347589,1106887837&fm=3028&app=3028&f=JPEG&fmt=auto?w=960&h=1280",
+        "https://picsum.photos/400/300?random=1",
+        "https://picsum.photos/400/300?random=2",
+        "https://picsum.photos/400/300?random=3",
+        "https://picsum.photos/400/300?random=4",
+        "https://picsum.photos/400/300?random=5",
+        "https://picsum.photos/400/300?random=6",
+        "https://picsum.photos/400/300?random=7",
     ];
     
     const videos = [
@@ -79,8 +79,8 @@ function generateMockData(type = 'recommend', page = 1) {
             id: index,
             title: titles[type][Math.floor(Math.random() * titles[type].length)],
             type: isVideo ? 'video' : 'image',
-            media: isVideo ? videos[videoIndex] : `${images[imgIndex]}?auto=format&fit=crop&w=400&h=300&q=80`,
-            poster: isVideo ? `${images[imgIndex]}?auto=format&fit=crop&w=400&h=300&q=80` : null,
+            media: isVideo ? videos[videoIndex] : images[imgIndex],
+            poster: isVideo ? images[imgIndex] : null,
             user: users[Math.floor(Math.random() * users.length)],
             likes: Math.floor(Math.random() * 1000),
             comments: Math.floor(Math.random() * 500),
@@ -95,7 +95,7 @@ function generateMockData(type = 'recommend', page = 1) {
 export default function handler(req, res) {
     if (req.method === 'GET') {
         const type = req.query.type || 'recommend';
-        const page = parseInt(req.query.page ) || 1;
+        const page = parseInt(req.query.page) || 1;
         
         // 模拟API延迟
         setTimeout(() => {

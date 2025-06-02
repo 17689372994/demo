@@ -12,9 +12,9 @@ app.use((req, res, next) => {
 // 静态文件服务
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 模拟数据生成器（保持原有逻辑不变）
+// 模拟数据生成器
 function generateMockData(type = 'recommend', page = 1) {
-    // 保持原有函数内容不变...
+    // 保持与上面相同的函数实现...
 }
 
 // API路由
