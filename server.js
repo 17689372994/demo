@@ -1,9 +1,7 @@
 const express = require('express');
 const app = express();
-
-// 静态文件服务
-app.use(express.static('public'));
-// 添加CORS支持
+const path = require('path');
+const port = process.env.PORT || 3000;
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
@@ -11,8 +9,7 @@ app.use((req, res, next) => {
 });
 
 // 静态文件服务 - 使用绝对路径
-// app.use(express.static(path.join(__dirname, 'public')));
-
+app.use(express.static(path.join(__dirname, 'public')));
 // 模拟数据生成器
 function generateMockData(type = 'recommend', page = 1) {
     const data = [];
@@ -105,21 +102,28 @@ function generateMockData(type = 'recommend', page = 1) {
 
 // API路由
 app.get('/api/feed', (req, res) => {
-  const type = req.query.type || 'recommend';
-  const page = parseInt(req.query.page) || 1;
-  
-  // 模拟API延迟
-  setTimeout(() => {
-    const data = generateMockData(type, page);
-    res.json(data);
-  }, 500);
+    const type = req.query.type || 'recommend';
+    const page = parseInt(req.query.page) || 1;
+    
+    // 模拟API延迟
+    setTimeout(() => {
+        const data = generateMockData(type, page);
+        res.json(data);
+    }, 500);
 });
 app.get('/', (req, res) => {
   res.redirect('/index.html');
 });
+// 启动服务器
+app.listen(port, () => {
+    console.log(`服务器运行在 http://localhost:${port}`);
+    console.log(`API地址示例:`);
+    console.log(`  http://localhost:${port}/api/feed?type=recommend&page=1`);
+    console.log(`  http://localhost:${port}/api/feed?type=hot&page=1`);
+    console.log(`  http://localhost:${port}/api/feed?type=new&page=1`);
+});
 // 导出 Express 应用
 module.exports = app;
-
 // 本地开发时使用的监听
 if (require.main === module) {
   const port = process.env.PORT || 3000;
