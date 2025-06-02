@@ -111,9 +111,7 @@ app.get('/api/feed', (req, res) => {
         res.json(data);
     }, 500);
 });
-app.get('/', (req, res) => {
-  res.redirect('/index.html');
-});
+
 // 启动服务器
 app.listen(port, () => {
     console.log(`服务器运行在 http://localhost:${port}`);
