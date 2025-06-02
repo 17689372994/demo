@@ -67,21 +67,16 @@ function generateMockData(type = 'recommend', page = 1) {
         "https://www.runoob.com/try/demo_source/movie.mp4",
         "https://www.runoob.com/try/demo_source/movie.mp4",
     ];
-    
     for (let i = 0; i < itemsPerPage; i++) {
         const index = (page - 1) * itemsPerPage + i;
         const isVideo = Math.random() > 0.7;
         
-        // 从数组中随机选择资源
-        const imgIndex = Math.floor(Math.random() * images.length);
-        const videoIndex = Math.floor(Math.random() * videos.length);
-        
         data.push({
             id: index,
-            title: titles[type][Math.floor(Math.random() * titles[type].length)],
+            title: titles[type][i % titles[type].length], // 确保索引不越界
             type: isVideo ? 'video' : 'image',
-            media: isVideo ? videos[videoIndex] : images[imgIndex],
-            poster: isVideo ? images[imgIndex] : null,
+            media: isVideo ? videos[Math.floor(Math.random() * videos.length)] : images[Math.floor(Math.random() * images.length)],
+            poster: isVideo ? images[Math.floor(Math.random() * images.length)] : null,
             user: users[Math.floor(Math.random() * users.length)],
             likes: Math.floor(Math.random() * 1000),
             comments: Math.floor(Math.random() * 500),
@@ -89,39 +84,43 @@ function generateMockData(type = 'recommend', page = 1) {
         });
     }
     
+    console.log(`Generated ${data.length} items`);
     return data;
 }
 
 // Vercel API 处理函数
 export default function handler(req, res) {
+    console.log('API request received:', req.method, req.url, req.query);
+    
     try {
-        console.log('API request received:', req.method, req.url); // 添加请求日志
-        
-        if (req.method === 'GET') {
-            const type = req.query.type || 'recommend';
-            const page = parseInt(req.query.page) || 1;
-            
-            // 验证输入参数
-            if (!['recommend', 'hot', 'new'].includes(type)) {
-                return res.status(400).json({ error: 'Invalid type parameter' });
-            }
-            
-            // 模拟API延迟
-            setTimeout(() => {
-                const data = generateMockData(type, page);
-                
-                // 添加日志确认数据生成
-                console.log(`Generated ${data.length} items for ${type} page ${page}`);
-                
-                // 设置正确的Content-Type头
-                res.setHeader('Content-Type', 'application/json');
-                res.status(200).json(data);
-            }, 500);
-        } else {
-            res.status(405).json({ error: 'Method Not Allowed' });
+        if (req.method !== 'GET') {
+            return res.status(405).json({ error: 'Method Not Allowed' });
         }
+        
+        const type = req.query.type || 'recommend';
+        const page = parseInt(req.query.page) || 1;
+        
+        // 验证页码
+        if (isNaN(page) || page < 1) {
+            return res.status(400).json({ error: 'Invalid page number' });
+        }
+        
+        // 生成数据
+        const data = generateMockData(type, page);
+        
+        // 设置响应头并返回JSON
+        res.setHeader('Content-Type', 'application/json');
+        res.status(200).json(data);
+        
+        console.log('Successfully sent response');
     } catch (error) {
         console.error('API handler error:', error);
-        res.status(500).json({ error: 'Internal Server Error', details: error.message });
+        
+        // 确保错误响应被正确发送
+        res.setHeader('Content-Type', 'application/json');
+        res.status(500).json({ 
+            error: 'Internal Server Error', 
+            details: error.message || 'Unknown error' 
+        });
     }
 }
