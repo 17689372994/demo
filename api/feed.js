@@ -3,9 +3,10 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 
 // 模拟数据生成器
 function generateMockData(type = 'recommend', page = 1) {
+    console.log('Generating mock data for:', type, 'page:', page); // 添加日志
+    
     const data = [];
     const itemsPerPage = 10;
-    
     // 不同类型的数据
     const titles = {
         recommend: [
@@ -50,13 +51,13 @@ function generateMockData(type = 'recommend', page = 1) {
     
     // 使用picsum提供的示例图片，确保图片存在
     const images = [
-        "https://picsum.photos/400/300?random=1",
-        "https://picsum.photos/400/300?random=2",
-        "https://picsum.photos/400/300?random=3",
-        "https://picsum.photos/400/300?random=4",
-        "https://picsum.photos/400/300?random=5",
-        "https://picsum.photos/400/300?random=6",
-        "https://picsum.photos/400/300?random=7",
+        "http://gips3.baidu.com/it/u=3886271102,3123389489&fm=3028&app=3028&f=JPEG&fmt=auto?w=1280&h=960",
+        "http://gips0.baidu.com/it/u=1690853528,2506870245&fm=3028&app=3028&f=JPEG&fmt=auto?w=1024&h=1024",
+        "http://gips3.baidu.com/it/u=1821127123,1149655687&fm=3028&app=3028&f=JPEG&fmt=auto?w=720&h=1280",
+        "http://gips3.baidu.com/it/u=3886271102,3123389489&fm=3028&app=3028&f=JPEG&fmt=auto?w=1280&h=960",
+        "http://gips0.baidu.com/it/u=3602773692,1512483864&fm=3028&app=3028&f=JPEG&fmt=auto?w=960&h=1280",
+        "http://gips0.baidu.com/it/u=3602773692,1512483864&fm=3028&app=3028&f=JPEG&fmt=auto?w=960&h=1280",
+        "http://gips3.baidu.com/it/u=1022347589,1106887837&fm=3028&app=3028&f=JPEG&fmt=auto?w=960&h=1280",
     ];
     
     const videos = [
@@ -93,16 +94,34 @@ function generateMockData(type = 'recommend', page = 1) {
 
 // Vercel API 处理函数
 export default function handler(req, res) {
-    if (req.method === 'GET') {
-        const type = req.query.type || 'recommend';
-        const page = parseInt(req.query.page) || 1;
+    try {
+        console.log('API request received:', req.method, req.url); // 添加请求日志
         
-        // 模拟API延迟
-        setTimeout(() => {
-            const data = generateMockData(type, page);
-            res.status(200).json(data);
-        }, 500);
-    } else {
-        res.status(405).json({ error: 'Method Not Allowed' });
+        if (req.method === 'GET') {
+            const type = req.query.type || 'recommend';
+            const page = parseInt(req.query.page) || 1;
+            
+            // 验证输入参数
+            if (!['recommend', 'hot', 'new'].includes(type)) {
+                return res.status(400).json({ error: 'Invalid type parameter' });
+            }
+            
+            // 模拟API延迟
+            setTimeout(() => {
+                const data = generateMockData(type, page);
+                
+                // 添加日志确认数据生成
+                console.log(`Generated ${data.length} items for ${type} page ${page}`);
+                
+                // 设置正确的Content-Type头
+                res.setHeader('Content-Type', 'application/json');
+                res.status(200).json(data);
+            }, 500);
+        } else {
+            res.status(405).json({ error: 'Method Not Allowed' });
+        }
+    } catch (error) {
+        console.error('API handler error:', error);
+        res.status(500).json({ error: 'Internal Server Error', details: error.message });
     }
 }
