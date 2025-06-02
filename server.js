@@ -114,6 +114,9 @@ app.get('/api/feed', (req, res) => {
     res.json(data);
   }, 500);
 });
+app.get('/', (req, res) => {
+  res.redirect('/index.html');
+});
 // 关键修改：导出 Express 应用供 Vercel 使用
 module.exports = app;
 
