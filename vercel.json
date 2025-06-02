@@ -11,7 +11,7 @@
     }
   ],
   "builds": [
-    { "src": "api/feed.js", "use": "@vercel/node" },
+    { "src": "server.js", "use": "@vercel/node" },
     { "src": "public/.*", "use": "@vercel/static" }
   ]
 }

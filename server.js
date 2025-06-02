@@ -122,12 +122,12 @@ app.listen(port, () => {
     console.log(`  http://localhost:${port}/api/feed?type=hot&page=1`);
     console.log(`  http://localhost:${port}/api/feed?type=new&page=1`);
 });
-// 导出 Express 应用
-module.exports = app;
-// 本地开发时使用的监听
-if (require.main === module) {
-  const port = process.env.PORT || 3000;
-  app.listen(port, () => {
-    console.log(`本地服务器运行在 http://localhost:${port}`);
-  });
-}
+// // 导出 Express 应用
+// module.exports = app;
+// // 本地开发时使用的监听
+// if (require.main === module) {
+//   const port = process.env.PORT || 3000;
+//   app.listen(port, () => {
+//     console.log(`本地服务器运行在 http://localhost:${port}`);
+//   });
+// }
