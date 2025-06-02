@@ -3,6 +3,12 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 
 // 模拟数据生成器
 function generateMockData(type = 'recommend', page = 1) {
+    // 验证type参数
+    const validTypes = ['recommend', 'hot', 'new'];
+    if (!validTypes.includes(type)) {
+        throw new Error(`Invalid type: ${type}. Allowed: ${validTypes.join(', ')}`);
+    }
+    
     const data = [];
     const itemsPerPage = 10;
     
@@ -48,22 +54,18 @@ function generateMockData(type = 'recommend', page = 1) {
     
     const users = ["游戏达人", "小可爱", "王者归来", "吃鸡高手", "游戏小白", "大神玩家", "快乐玩家", "游戏迷", "幸运星", "游戏主播"];
     
-    // 图片和视频资源
+    // 使用可靠的图片服务
     const images = [
-        "http://gips3.baidu.com/it/u=3886271102,3123389489&fm=3028&app=3028&f=JPEG&fmt=auto?w=1280&h=960",
-        "http://gips0.baidu.com/it/u=1690853528,2506870245&fm=3028&app=3028&f=JPEG&fmt=auto?w=1024&h=1024",
-        "http://gips3.baidu.com/it/u=1821127123,1149655687&fm=3028&app=3028&f=JPEG&fmt=auto?w=720&h=1280",
-        "http://gips3.baidu.com/it/u=3886271102,3123389489&fm=3028&app=3028&f=JPEG&fmt=auto?w=1280&h=960",
-        "http://gips0.baidu.com/it/u=3602773692,1512483864&fm=3028&app=3028&f=JPEG&fmt=auto?w=960&h=1280",
-        "http://gips0.baidu.com/it/u=3602773692,1512483864&fm=3028&app=3028&f=JPEG&fmt=auto?w=960&h=1280",
-        "http://gips3.baidu.com/it/u=1022347589,1106887837&fm=3028&app=3028&f=JPEG&fmt=auto?w=960&h=1280",
+        "https://picsum.photos/400/300?random=1",
+        "https://picsum.photos/400/300?random=2",
+        "https://picsum.photos/400/300?random=3",
+        "https://picsum.photos/400/300?random=4",
+        "https://picsum.photos/400/300?random=5",
+        "https://picsum.photos/400/300?random=6",
+        "https://picsum.photos/400/300?random=7",
     ];
     
     const videos = [
-        "https://www.runoob.com/try/demo_source/movie.mp4",
-        "https://www.runoob.com/try/demo_source/movie.mp4",
-        "https://www.runoob.com/try/demo_source/movie.mp4",
-        "https://www.runoob.com/try/demo_source/movie.mp4",
         "https://www.runoob.com/try/demo_source/movie.mp4",
     ];
     
@@ -71,16 +73,12 @@ function generateMockData(type = 'recommend', page = 1) {
         const index = (page - 1) * itemsPerPage + i;
         const isVideo = Math.random() > 0.7;
         
-        // 从数组中随机选择资源
-        const imgIndex = Math.floor(Math.random() * images.length);
-        const videoIndex = Math.floor(Math.random() * videos.length);
-        
         data.push({
             id: index,
-            title: titles[type][Math.floor(Math.random() * titles[type].length)],
+            title: titles[type][i % titles[type].length], // 确保索引不越界
             type: isVideo ? 'video' : 'image',
-            media: isVideo ? videos[videoIndex] : `${images[imgIndex]}?auto=format&fit=crop&w=400&h=300&q=80`,
-            poster: isVideo ? `${images[imgIndex]}?auto=format&fit=crop&w=400&h=300&q=80` : null,
+            media: isVideo ? videos[0] : images[Math.floor(Math.random() * images.length)],
+            poster: isVideo ? images[Math.floor(Math.random() * images.length)] : null,
             user: users[Math.floor(Math.random() * users.length)],
             likes: Math.floor(Math.random() * 1000),
             comments: Math.floor(Math.random() * 500),
@@ -93,23 +91,36 @@ function generateMockData(type = 'recommend', page = 1) {
 
 // Vercel API 处理函数
 export default function handler(req: VercelRequest, res: VercelResponse) {
+    console.log('API请求收到:', req.method, req.url, req.query);
+    
     try {
-        console.log('API request received:', req.method, req.url, req.query);
-        
-        if (req.method === 'GET') {
-            const type = req.query.type || 'recommend';
-            const page = parseInt(req.query.page as string) || 1;
-            
-            // 模拟API延迟
-            setTimeout(() => {
-                const data = generateMockData(type, page);
-                res.status(200).json(data);
-            }, 500);
-        } else {
-            res.status(405).json({ error: 'Method Not Allowed' });
+        if (req.method !== 'GET') {
+            return res.status(405).json({ error: '不支持的请求方法' });
         }
+        
+        const type = req.query.type?.toString() || 'recommend';
+        const page = parseInt(req.query.page?.toString() || '1', 10);
+        
+        // 验证参数
+        if (!['recommend', 'hot', 'new'].includes(type)) {
+            return res.status(400).json({ error: '无效的type参数，允许值: recommend, hot, new' });
+        }
+        
+        if (isNaN(page) || page < 1) {
+            return res.status(400).json({ error: '无效的page参数，必须是大于0的整数' });
+        }
+        
+        // 生成数据
+        const data = generateMockData(type, page);
+        
+        // 返回数据
+        res.status(200).json(data);
     } catch (error) {
-        console.error('API handler error:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        console.error('API处理错误:', error);
+        res.status(500).json({
+            error: '服务器内部错误',
+            details: error.message || '未知错误',
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 }
