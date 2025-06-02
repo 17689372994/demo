@@ -1,10 +1,13 @@
 {
   "version": 2,
-  "routes": [
-    { "src": "/api/feed", "dest": "api/feed.js" },
+  "builds": [
     {
-      "src": "/(.*)",
-      "dest": "/public/$1" 
+      "src": "server.js",
+      "use": "@vercel/node"
     }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "server.js" },
+    { "src": "/(.*)", "dest": "public/$1" }
   ]
 }
