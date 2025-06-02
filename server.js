@@ -1,10 +1,14 @@
 const express = require('express');
 const app = express();
 const port = process.env.PORT || 3000;
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+});
 
-// 静态文件服务
-app.use(express.static('public'));
-
+// 静态文件服务 - 使用绝对路径
+app.use(express.static(path.join(__dirname, 'public')));
 // 模拟数据生成器
 function generateMockData(type = 'recommend', page = 1) {
     const data = [];
